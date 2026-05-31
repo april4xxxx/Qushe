@@ -115,7 +115,7 @@ export function SettingsPage() {
           <div className="rounded-[1.5rem] bg-lion/[0.02] p-[3px] ring-1 ring-lion/[0.08]">
             <div className="rounded-[calc(1.5rem-3px)] bg-white p-6">
               <h2 className="font-serif text-[15px] text-lion mb-3">危险操作</h2>
-              <p className="font-sans text-[12px] text-warm-gray mb-4">清除所有本地数据，包括任务、主线设置和 API Key。</p>
+              <p className="font-sans text-[12px] text-warm-gray mb-4">清除所有本地数据，包括任务、主线设置、AI 记忆和 API Key。</p>
               <button
                 onClick={handleClearData}
                 className="rounded-full border border-lion/20 px-5 py-2.5 font-sans text-[12px] font-medium text-lion hover:bg-lion-bg transition-all duration-300"
@@ -129,7 +129,7 @@ export function SettingsPage() {
         {/* App info */}
         <footer className="text-center pt-8 pb-6">
           <p className="font-serif text-2xl text-parchment mb-1">取舍</p>
-          <p className="font-sans text-[11px] text-warm-gray-lighter tracking-wide">AI Task Curator · v0.1</p>
+          <p className="font-sans text-[11px] text-warm-gray-lighter tracking-wide">AI Task Curator · v0.2.0</p>
         </footer>
       </main>
     </div>

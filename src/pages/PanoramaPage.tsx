@@ -277,17 +277,26 @@ export function PanoramaPage() {
         </section>
 
         {/* CTA */}
-        <section className="text-center pb-8">
+        <section className="text-center pb-8 space-y-3">
           <p className="font-serif italic text-warm-gray text-[14px] mb-5">
             主线随你成长而变化。
           </p>
-          <button
-            onClick={() => navigate('/chat')}
-            className="group inline-flex items-center gap-3 rounded-full border border-espresso/15 bg-white px-5 py-2.5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-espresso/40 active:scale-[0.97]"
-          >
-            <span className="font-sans text-[12px] tracking-wide text-espresso">和 AI 调整主线</span>
-            <span className="text-warm-gray text-sm transition-transform duration-500 group-hover:translate-x-0.5">→</span>
-          </button>
+          <div className="flex flex-col items-center gap-3">
+            <button
+              onClick={() => navigate('/memory')}
+              className="group inline-flex items-center gap-3 rounded-full border border-accent/20 bg-accent-light px-5 py-2.5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-accent/40 active:scale-[0.97]"
+            >
+              <span className="font-sans text-[12px] tracking-wide text-accent">查看记忆</span>
+              <span className="text-accent text-sm transition-transform duration-500 group-hover:translate-x-0.5">→</span>
+            </button>
+            <button
+              onClick={() => navigate('/chat')}
+              className="group inline-flex items-center gap-3 rounded-full border border-espresso/15 bg-white px-5 py-2.5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-espresso/40 active:scale-[0.97]"
+            >
+              <span className="font-sans text-[12px] tracking-wide text-espresso">和 AI 调整主线</span>
+              <span className="text-warm-gray text-sm transition-transform duration-500 group-hover:translate-x-0.5">→</span>
+            </button>
+          </div>
         </section>
       </main>
     </div>

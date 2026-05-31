@@ -6,6 +6,46 @@
 
 ---
 
+## 2026-05-31 · v0.2.0
+
+V2 — Memory System。AI 具备结构化记忆能力，能从对话和任务行为中提取、检索、引用长期洞察。
+
+### Added
+
+- **Memory 数据模型**：5 种记忆类型（trait 特质 / pattern 模式 / decision 决策 / event 事件 / preference 偏好），含置信度、来源追踪、引用计数。
+- **Memory 页面** (`/memory`)：分类筛选 + 卡片列表 + inline 编辑 + 手动添加 + 回收站（30 天保留）。
+- **AI 记忆提取** (`extractMemories`)：分析对话和任务评估记录，自动提取值得长期记住的洞察，支持 new / update / conflict 三种结果。
+- **AI 记忆检索**：`assessTask` 和 `chat` 每次调用前注入相关记忆上下文，AI 评估时引用具体记忆。
+- **评估卡片「基于记忆」展示**：AI 引用了哪些记忆、基于记忆的额外洞察，在 `AssessmentCard` 中显式标注。
+- **对话页「提炼到 Memory ✦」按钮**：用户手动触发记忆提取，显示提取结果计数。
+- **全景页「查看记忆 →」入口**：从全景页快速跳转 Memory 页面。
+- **Electron 后台定时提取**：每天 0 点自动触发记忆提取（通过 IPC 发送到渲染进程）。
+- **Electron 后台遗忘扫描**：每周日 0 点清理回收站中超过 30 天的记忆。
+- **Memory 引用追踪**：AI 评估引用记忆时自动更新 `lastReferencedAt` 和 `referencedCount`。
+- **用户编辑记忆**：编辑后 confidence 自动提升至 5，标记 `userEdited: true`，永不自动删除。
+- **Storage 层 Memory CRUD**：`addMemory` / `addMemories` / `updateMemory` / `deleteMemory` / `restoreMemory` / `permanentlyDeleteMemory` / `bumpMemoryReference`。
+
+### Changed
+
+- `assessTask` 新增 `memories` 参数，返回类型扩展为 `AIAssessmentWithMemory`（含 `referencedMemoryIds` 和 `memoryInsight`）。
+- `chat` 新增 `memories` 参数，对话时注入记忆上下文。
+- `clearAllData` 现在同时清除 `memories.json`。
+- 设置页危险操作说明更新为包含"AI 记忆"。
+- 版本号升级至 `0.2.0`。
+
+### Data
+
+- 新增 `memories.json`：结构化记忆存储，含 version / extractedAt / memories[] / trash[]。
+- Electron IPC 新增 `memory:extract-request` 和 `memory:forget-scan` 事件。
+- `preload.ts` 新增 `onMemoryExtractRequest` 和 `onMemoryForgetScan` 回调注册。
+
+### Validation
+
+- `npm run build`：通过（与 v0.1.2 相同的已知 warning）。
+- `npm run lint`：未通过（与 v0.1.2 相同的 ChatPage.tsx 已知错误，V2 未引入新 lint 错误）。
+
+---
+
 ## 2026-05-31 · v0.1.2
 
 User Journey Map 后的关键修复轮。修复 V0.1.0 暴露的所有致命 bug，建立反馈数据基础。

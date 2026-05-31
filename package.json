@@ -1,7 +1,7 @@
 {
   "name": "qushe",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "取舍 · AI Task Curator",
   "main": "dist-electron/main.js",
   "type": "module",

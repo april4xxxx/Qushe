@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import type { AIAssessment, Basket } from '../types'
+import type { Basket, Memory } from '../types'
 import { BASKET_CONFIG } from '../types'
+import type { AIAssessmentWithMemory } from '../lib/ai'
 
 interface Props {
-  assessment: AIAssessment
+  assessment: AIAssessmentWithMemory
   taskTitle: string
   onConfirm: (overrides?: { basket?: Basket; deadline?: string; reason?: string }) => void
+  referencedMemories?: Memory[]
 }
 
 const basketAccents = {
@@ -14,7 +16,7 @@ const basketAccents = {
   ostrich: { border: 'ring-ostrich/30', bg: 'bg-ostrich-bg', text: 'text-ostrich' },
 }
 
-export function AssessmentCard({ assessment, taskTitle, onConfirm }: Props) {
+export function AssessmentCard({ assessment, taskTitle, onConfirm, referencedMemories }: Props) {
   const [selectedBasket, setSelectedBasket] = useState<Basket>(assessment.basket)
   const [deadlineAnswer, setDeadlineAnswer] = useState(assessment.deadline ?? '')
   const [changeReason, setChangeReason] = useState('')
@@ -58,6 +60,28 @@ export function AssessmentCard({ assessment, taskTitle, onConfirm }: Props) {
               "{assessment.reason}"
             </p>
           </blockquote>
+
+          {/* Memory references */}
+          {referencedMemories && referencedMemories.length > 0 && (
+            <div className="rounded-xl bg-accent-light border border-accent/15 p-4 mb-6">
+              <p className="font-sans text-[10px] uppercase tracking-[0.2em] text-accent font-medium mb-2">
+                基于记忆
+              </p>
+              <div className="space-y-1.5">
+                {referencedMemories.map(m => (
+                  <p key={m.id} className="font-sans text-[12px] text-espresso-light leading-relaxed">
+                    <span className="text-accent mr-1.5">◈</span>
+                    {m.title}
+                  </p>
+                ))}
+              </div>
+              {assessment.memoryInsight && (
+                <p className="font-serif text-[13px] italic text-accent mt-2 pt-2 border-t border-accent/10">
+                  {assessment.memoryInsight}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Details grid */}
           <div className="grid grid-cols-2 gap-4 mb-6">
