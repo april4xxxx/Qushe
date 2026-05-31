@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { TaskCard } from '../components/TaskCard'
 import { AssessmentCard } from '../components/AssessmentCard'
 import { TaskEditor } from '../components/TaskEditor'
-import type { AIAssessment, Basket, EvalRecord, Task } from '../types'
+import type { Basket, EvalRecord, Task } from '../types'
 import { assessTask, isAIReady } from '../lib/ai'
+import type { AIAssessmentWithMemory } from '../lib/ai'
 import {
   addTask,
+  bumpMemoryReference,
   generateId,
+  getMemories,
   getProfile,
   getTasks,
   recordEval,
@@ -18,7 +21,7 @@ export function TodayPage() {
   const [tasks, setTasks] = useState<Task[]>(() => getTasks())
   const [inputValue, setInputValue] = useState('')
   const [isAssessing, setIsAssessing] = useState(false)
-  const [assessment, setAssessment] = useState<AIAssessment | null>(null)
+  const [assessment, setAssessment] = useState<AIAssessmentWithMemory | null>(null)
   const [assessingTitle, setAssessingTitle] = useState('')
   const [showInput, setShowInput] = useState(false)
   const [error, setError] = useState('')
@@ -45,7 +48,11 @@ export function TodayPage() {
     setAssessingTitle(inputValue.trim())
 
     try {
-      const result = await assessTask(inputValue.trim(), profile.mainlines, tasks)
+      const memories = getMemories()
+      const result = await assessTask(inputValue.trim(), profile.mainlines, tasks, memories)
+      if (result.referencedMemoryIds?.length) {
+        bumpMemoryReference(result.referencedMemoryIds)
+      }
       setAssessment(result)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'AI 评估失败，请重试')
@@ -197,6 +204,11 @@ export function TodayPage() {
               assessment={assessment}
               taskTitle={assessingTitle}
               onConfirm={confirmTask}
+              referencedMemories={
+                assessment.referencedMemoryIds?.length
+                  ? getMemories().filter(m => assessment.referencedMemoryIds!.includes(m.id))
+                  : undefined
+              }
             />
           </div>
         )}

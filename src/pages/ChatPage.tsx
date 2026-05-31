@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import type { ChatMessage, Mainline } from '../types'
-import { chat, isAIReady } from '../lib/ai'
-import { getProfile, saveProfile, generateId, getChatMessages, saveChatMessages } from '../lib/storage'
+import type { ChatMessage, Mainline, Memory } from '../types'
+import { chat, extractMemories, isAIReady } from '../lib/ai'
+import {
+  getProfile, saveProfile, generateId, getChatMessages, saveChatMessages,
+  getMemories, getEvals, addMemories, updateMemory,
+} from '../lib/storage'
 import { MarkdownMessage } from '../components/MarkdownMessage'
 
 export function ChatPage() {
@@ -14,6 +17,8 @@ export function ChatPage() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isExtracting, setIsExtracting] = useState(false)
+  const [extractResult, setExtractResult] = useState<{ count: number } | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -63,7 +68,8 @@ export function ChatPage() {
 
     try {
       const history = newMessages.map(m => ({ role: m.role, content: m.content }))
-      const response = await chat('', profile?.mainlines ?? [], history)
+      const memories = getMemories()
+      const response = await chat('', profile?.mainlines ?? [], history, memories)
 
       let panoramaUnlocked = false
       const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/)
@@ -116,6 +122,47 @@ export function ChatPage() {
     }
   }
 
+  async function handleExtractMemories() {
+    if (isExtracting || messages.length < 3) return
+    setIsExtracting(true)
+    setExtractResult(null)
+    try {
+      const existingMemories = getMemories()
+      const recentEvals = getEvals().slice(-10)
+      const result = await extractMemories(messages, recentEvals, existingMemories, profile?.mainlines ?? [])
+
+      let count = 0
+      if (result.new.length > 0) {
+        const now = new Date().toISOString()
+        const newMemories: Memory[] = result.new.map(m => ({
+          ...m,
+          id: generateId(),
+          confidence: (m.confidence ?? 3) as Memory['confidence'],
+          lastReferencedAt: now,
+          referencedCount: 0,
+          userEdited: false,
+        }))
+        addMemories(newMemories)
+        count += newMemories.length
+      }
+      if (result.update.length > 0) {
+        for (const u of result.update) {
+          const patch: Partial<Memory> = {}
+          if (u.title) patch.title = u.title
+          if (u.content) patch.content = u.content
+          if (u.confidence) patch.confidence = u.confidence as Memory['confidence']
+          updateMemory(u.id, patch)
+          count++
+        }
+      }
+      setExtractResult({ count })
+    } catch {
+      setError('记忆提取失败')
+    } finally {
+      setIsExtracting(false)
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-cream pb-16">
       <header className="px-8 pt-14 pb-6">
@@ -161,6 +208,23 @@ export function ChatPage() {
       </main>
 
       <div className="border-t border-parchment bg-cream px-6 py-4">
+        {/* Extract to Memory button */}
+        {messages.length >= 3 && (
+          <div className="max-w-lg mx-auto mb-2 flex items-center justify-end gap-2">
+            {extractResult && (
+              <span className="font-sans text-[11px] text-accent animate-[fadeUp_0.4s_ease-out]">
+                已提取 {extractResult.count} 条记忆
+              </span>
+            )}
+            <button
+              onClick={handleExtractMemories}
+              disabled={isExtracting}
+              className="font-sans text-[11px] text-accent hover:text-espresso transition-colors disabled:opacity-40"
+            >
+              {isExtracting ? '提取中...' : '提炼到 Memory ✦'}
+            </button>
+          </div>
+        )}
         <form onSubmit={handleSend} className="max-w-lg mx-auto">
           <div className="rounded-full bg-white p-[3px] ring-1 ring-espresso/[0.08] shadow-[0_2px_12px_rgba(26,22,20,0.06)]">
             <div className="flex items-center gap-2 rounded-full px-5 py-1">

@@ -7,6 +7,8 @@ declare global {
       write(filename: string, data: unknown): Promise<void>
       remove(filename: string): Promise<void>
       dataDir(): Promise<string>
+      onMemoryExtractRequest(callback: () => void): () => void
+      onMemoryForgetScan(callback: () => void): () => void
     }
   }
 }

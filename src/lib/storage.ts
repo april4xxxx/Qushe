@@ -1,4 +1,4 @@
-import type { ChatMessage, EvalRecord, Task, UserProfile } from '../types'
+import type { ChatMessage, EvalRecord, Memory, MemoryStore, Task, UserProfile } from '../types'
 
 const FILES = {
   profile: 'profile.json',
@@ -6,7 +6,15 @@ const FILES = {
   chatMessages: 'chat.json',
   apiKey: 'apikey.json',
   evals: 'evals.json',
+  memories: 'memories.json',
 } as const
+
+const DEFAULT_MEMORY_STORE: MemoryStore = {
+  version: 1,
+  extractedAt: '',
+  memories: [],
+  trash: [],
+}
 
 interface CacheShape {
   profile: UserProfile | null
@@ -14,6 +22,7 @@ interface CacheShape {
   chatMessages: ChatMessage[]
   apiKey: string
   evals: EvalRecord[]
+  memoryStore: MemoryStore
   loaded: boolean
 }
 
@@ -23,6 +32,7 @@ const cache: CacheShape = {
   chatMessages: [],
   apiKey: '',
   evals: [],
+  memoryStore: { ...DEFAULT_MEMORY_STORE },
   loaded: false,
 }
 
@@ -56,18 +66,20 @@ async function removeFromDisk(filename: string): Promise<void> {
 
 export async function initStorage(): Promise<void> {
   if (cache.loaded) return
-  const [profile, tasks, chatMessages, apiKeyData, evals] = await Promise.all([
+  const [profile, tasks, chatMessages, apiKeyData, evals, memoryStore] = await Promise.all([
     loadFromDisk<UserProfile | null>(FILES.profile, null),
     loadFromDisk<Task[]>(FILES.tasks, []),
     loadFromDisk<ChatMessage[]>(FILES.chatMessages, []),
     loadFromDisk<{ value: string }>(FILES.apiKey, { value: '' }),
     loadFromDisk<EvalRecord[]>(FILES.evals, []),
+    loadFromDisk<MemoryStore>(FILES.memories, { ...DEFAULT_MEMORY_STORE }),
   ])
   cache.profile = profile
   cache.tasks = tasks
   cache.chatMessages = chatMessages
   cache.apiKey = apiKeyData.value ?? ''
   cache.evals = evals
+  cache.memoryStore = memoryStore
   cache.loaded = true
 }
 
@@ -137,12 +149,100 @@ export function recordEval(record: EvalRecord): void {
   void saveToDisk(FILES.evals, cache.evals)
 }
 
+export function getMemoryStore(): MemoryStore {
+  return cache.memoryStore
+}
+
+export function getMemories(): Memory[] {
+  return cache.memoryStore.memories
+}
+
+export function getMemoryTrash(): Memory[] {
+  return cache.memoryStore.trash
+}
+
+export function addMemory(memory: Memory): void {
+  cache.memoryStore = {
+    ...cache.memoryStore,
+    memories: [...cache.memoryStore.memories, memory],
+  }
+  void saveToDisk(FILES.memories, cache.memoryStore)
+}
+
+export function addMemories(memories: Memory[]): void {
+  cache.memoryStore = {
+    ...cache.memoryStore,
+    memories: [...cache.memoryStore.memories, ...memories],
+    extractedAt: new Date().toISOString(),
+  }
+  void saveToDisk(FILES.memories, cache.memoryStore)
+}
+
+export function updateMemory(id: string, updates: Partial<Memory>): void {
+  const idx = cache.memoryStore.memories.findIndex(m => m.id === id)
+  if (idx === -1) return
+  const updated = { ...cache.memoryStore.memories[idx], ...updates }
+  cache.memoryStore = {
+    ...cache.memoryStore,
+    memories: [
+      ...cache.memoryStore.memories.slice(0, idx),
+      updated,
+      ...cache.memoryStore.memories.slice(idx + 1),
+    ],
+  }
+  void saveToDisk(FILES.memories, cache.memoryStore)
+}
+
+export function deleteMemory(id: string): void {
+  const memory = cache.memoryStore.memories.find(m => m.id === id)
+  if (!memory) return
+  cache.memoryStore = {
+    ...cache.memoryStore,
+    memories: cache.memoryStore.memories.filter(m => m.id !== id),
+    trash: [...cache.memoryStore.trash, memory],
+  }
+  void saveToDisk(FILES.memories, cache.memoryStore)
+}
+
+export function restoreMemory(id: string): void {
+  const memory = cache.memoryStore.trash.find(m => m.id === id)
+  if (!memory) return
+  cache.memoryStore = {
+    ...cache.memoryStore,
+    memories: [...cache.memoryStore.memories, memory],
+    trash: cache.memoryStore.trash.filter(m => m.id !== id),
+  }
+  void saveToDisk(FILES.memories, cache.memoryStore)
+}
+
+export function permanentlyDeleteMemory(id: string): void {
+  cache.memoryStore = {
+    ...cache.memoryStore,
+    trash: cache.memoryStore.trash.filter(m => m.id !== id),
+  }
+  void saveToDisk(FILES.memories, cache.memoryStore)
+}
+
+export function bumpMemoryReference(ids: string[]): void {
+  const now = new Date().toISOString()
+  cache.memoryStore = {
+    ...cache.memoryStore,
+    memories: cache.memoryStore.memories.map(m =>
+      ids.includes(m.id)
+        ? { ...m, lastReferencedAt: now, referencedCount: m.referencedCount + 1 }
+        : m
+    ),
+  }
+  void saveToDisk(FILES.memories, cache.memoryStore)
+}
+
 export function clearAllData(): void {
   cache.profile = null
   cache.tasks = []
   cache.chatMessages = []
   cache.apiKey = ''
   cache.evals = []
+  cache.memoryStore = { ...DEFAULT_MEMORY_STORE }
   Object.values(FILES).forEach(f => void removeFromDisk(f))
 }
 

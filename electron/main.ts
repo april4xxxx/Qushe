@@ -78,7 +78,42 @@ ipcMain.handle('storage:remove', async (_event, filename: string) => {
 
 ipcMain.handle('storage:dataDir', () => getDataDir())
 
-app.whenReady().then(createWindow)
+function scheduleDailyExtract(): void {
+  const now = new Date()
+  const nextMidnight = new Date(now)
+  nextMidnight.setDate(nextMidnight.getDate() + 1)
+  nextMidnight.setHours(0, 0, 0, 0)
+  const msUntilMidnight = nextMidnight.getTime() - now.getTime()
+
+  setTimeout(() => {
+    mainWindow?.webContents.send('memory:extract-request')
+    setInterval(() => {
+      mainWindow?.webContents.send('memory:extract-request')
+    }, 24 * 60 * 60 * 1000)
+  }, msUntilMidnight)
+}
+
+function scheduleWeeklyForget(): void {
+  const now = new Date()
+  const daysUntilSunday = (7 - now.getDay()) % 7 || 7
+  const nextSunday = new Date(now)
+  nextSunday.setDate(nextSunday.getDate() + daysUntilSunday)
+  nextSunday.setHours(0, 0, 0, 0)
+  const msUntilSunday = nextSunday.getTime() - now.getTime()
+
+  setTimeout(() => {
+    mainWindow?.webContents.send('memory:forget-scan')
+    setInterval(() => {
+      mainWindow?.webContents.send('memory:forget-scan')
+    }, 7 * 24 * 60 * 60 * 1000)
+  }, msUntilSunday)
+}
+
+app.whenReady().then(() => {
+  createWindow()
+  scheduleDailyExtract()
+  scheduleWeeklyForget()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

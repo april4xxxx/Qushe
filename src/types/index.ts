@@ -73,6 +73,40 @@ export interface ChatMessage {
   timestamp: string
 }
 
+export type MemoryType = 'trait' | 'pattern' | 'decision' | 'event' | 'preference'
+
+export interface Memory {
+  id: string
+  type: MemoryType
+  title: string
+  content: string
+  confidence: 1 | 2 | 3 | 4 | 5
+  source: {
+    kind: 'chat' | 'task' | 'manual'
+    conversationId?: string
+    extractedAt: string
+  }
+  lastReferencedAt: string
+  referencedCount: number
+  expiresAt: string | null
+  userEdited: boolean
+}
+
+export interface MemoryStore {
+  version: number
+  extractedAt: string
+  memories: Memory[]
+  trash: Memory[]
+}
+
+export const MEMORY_TYPE_CONFIG = {
+  trait: { label: '特质', description: '个人习惯与特征', icon: '◈' },
+  pattern: { label: '模式', description: '行为规律与趋势', icon: '◇' },
+  decision: { label: '决策', description: '历史判断与修正', icon: '◆' },
+  event: { label: '事件', description: '具体日期与里程碑', icon: '◎' },
+  preference: { label: '偏好', description: '执行习惯与倾向', icon: '◉' },
+} as const
+
 export const BASKET_CONFIG = {
   lion: { label: '🦁 狮子', description: '今天必须办的重要+紧急任务', color: 'lion' },
   ox: { label: '🐂 牛马', description: '这周需要做的事务性任务', color: 'ox' },
