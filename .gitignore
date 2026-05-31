@@ -1,0 +1,69 @@
+# ===== Dependencies =====
+node_modules/
+
+# ===== Build artifacts =====
+dist/
+dist-ssr/
+dist-electron/
+release/
+
+# ===== TypeScript build info =====
+*.tsbuildinfo
+.tmp/
+
+# ===== Logs =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===== Environment & secrets =====
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+.secret
+secrets.json
+*.local
+
+# ===== Editor / OS =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ===== Vite =====
+.vite/
+
+# ===== Personal user data (CRITICAL · 个人使用记忆不上传) =====
+# docs/personal/ 是你自己的设计文档（含 Persona、个人主线、Journey 等私密内容）
+docs/personal/
+
+# 备用：防止误把运行时数据复制进仓库
+**/Application Support/取舍/
+runtime-data/
+my-data/
+
+# ===== Test outputs =====
+coverage/
+.nyc_output/
+
+# ===== Misc =====
+*.tgz
+*.tar.gz
+.cache/
