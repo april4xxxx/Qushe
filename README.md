@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-- 产品版本：`0.2.0`
+- 产品版本：`0.2.5`
 - 应用类型：Electron 桌面应用，也可以用 Vite 浏览器模式预览
 - AI 服务：DeepSeek Chat API，使用 OpenAI SDK 兼容接口
 - 数据策略：任务、主线、聊天记录、API Key、AI 评估日志都存储在本机
@@ -17,7 +17,8 @@
 - 对话页：和 AI 梳理人生主线（AI 会参考记忆上下文），也可以继续讨论任务安排和主线调整。支持完整 Markdown 渲染。底部有「提炼到 Memory ✦」按钮手动触发记忆提取。
 - 全景页：基于主线和任务生成当前人生全景、任务分布和时间投入概览。杂志风格刊头 + AI 引言 + 罗马数字主线卡片 + 时间流向柱状图。底部有「查看记忆 →」快捷入口。
 - 记忆页（V2 新增）：查看 AI 对用户的所有认知。5 种记忆类型（特质/模式/决策/事件/偏好）分类筛选，支持 inline 编辑、手动添加、删除（30 天回收站）。
-- 设置页：配置 DeepSeek API Key、查看主线目标、清除本地数据（含记忆）。
+- 日历页（V2.5 新增）：周视图虚拟日历（8:00-22:00，30 分钟格）。AI 一键规划今日时间表，支持拖拽调整时段、点击放置未排入任务。时段块按篮子颜色显示。
+- 设置页：配置 DeepSeek API Key、查看主线目标、清除本地数据（含记忆、日程）。
 
 ### 关键 AI 交互
 
@@ -62,7 +63,7 @@ src/
   lib/
     ai.ts          DeepSeek/OpenAI SDK 初始化与 AI 调用
     storage.ts     统一本地存储封装
-  pages/           今日、看板、对话、全景、记忆、设置页面
+  pages/           今日、看板、日历、对话、全景、记忆、设置页面
   types/           领域类型定义
 public/            静态资源
 dist/              Web 构建产物，不应手改
@@ -136,6 +137,7 @@ app.getPath('userData')
 - `apikey.json`：DeepSeek API Key
 - `evals.json`：AI 决策与用户修正的对比记录，包含 AI 原始建议、用户是否接受、修改原因。是 V5 评估系统的数据基础。
 - `memories.json`：AI 结构化记忆存储，含版本号、提取时间戳、记忆列表和回收站。每条记忆包含类型、置信度、来源追踪、引用计数。
+- `schedule.json`：虚拟日历时段安排，含 TimeBlock 列表（taskId、日期、起止时间、时长、是否 AI 生成）。
 
 浏览器预览环境下，数据写入 `localStorage`，key 与上述文件名一致。
 
@@ -148,8 +150,13 @@ app.getPath('userData')
 - Electron 主进程只暴露必要 IPC，保持 `contextIsolation: true` 和 `nodeIntegration: false`。
 - `dist/`、`dist-electron/`、`release/` 是生成产物，不手工编辑。
 - 提交代码前必须运行 `npm run lint` 和 `npm run build`，并在提交说明或 PR 里记录结果。
-- 每次更新功能、用户可见行为、配置、脚本、架构、数据结构或开发流程时，必须同步更新 `README.md`。
-- 每次更新项目时，必须同步更新 `CHANGELOG.md`，按日期记录变更、验证结果和已知问题。
+- 每次代码变更后，按以下清单检查文档更新：
+  1. `package.json` — 有新功能或发布时 bump 版本号（PATCH：bug 修复；MINOR：新功能；MAJOR：不兼容改动）
+  2. `CHANGELOG.md` — 每次都更新，记录做了什么（Added/Changed/Fixed）
+  3. `README.md` — 涉及功能、数据、架构、脚本变化时同步
+  4. `docs/personal/iterations.md` — 记录为什么做、测试发现、UX 决策、下一步计划
+  5. `docs/personal/design.md` — 路线图状态变化时更新（设计中 → 已实现 → 已废弃）
+- 前 3 项是"代码侧"文档，必须在 commit 前完成。后 2 项是"决策侧"文档，必须在 build 前完成。
 - 如果某次改动不需要更新 README，必须在变更说明里明确写出原因；但 CHANGELOG 仍然要记录。
 
 ## 验证状态

@@ -1,4 +1,4 @@
-import type { ChatMessage, EvalRecord, Memory, MemoryStore, Task, UserProfile } from '../types'
+import type { ChatMessage, EvalRecord, Memory, MemoryStore, Task, TimeBlock, UserProfile, WeekSchedule } from '../types'
 
 const FILES = {
   profile: 'profile.json',
@@ -7,6 +7,7 @@ const FILES = {
   apiKey: 'apikey.json',
   evals: 'evals.json',
   memories: 'memories.json',
+  schedule: 'schedule.json',
 } as const
 
 const DEFAULT_MEMORY_STORE: MemoryStore = {
@@ -16,6 +17,11 @@ const DEFAULT_MEMORY_STORE: MemoryStore = {
   trash: [],
 }
 
+const DEFAULT_SCHEDULE: WeekSchedule = {
+  version: 1,
+  blocks: [],
+}
+
 interface CacheShape {
   profile: UserProfile | null
   tasks: Task[]
@@ -23,6 +29,7 @@ interface CacheShape {
   apiKey: string
   evals: EvalRecord[]
   memoryStore: MemoryStore
+  schedule: WeekSchedule
   loaded: boolean
 }
 
@@ -33,6 +40,7 @@ const cache: CacheShape = {
   apiKey: '',
   evals: [],
   memoryStore: { ...DEFAULT_MEMORY_STORE },
+  schedule: { ...DEFAULT_SCHEDULE },
   loaded: false,
 }
 
@@ -66,13 +74,14 @@ async function removeFromDisk(filename: string): Promise<void> {
 
 export async function initStorage(): Promise<void> {
   if (cache.loaded) return
-  const [profile, tasks, chatMessages, apiKeyData, evals, memoryStore] = await Promise.all([
+  const [profile, tasks, chatMessages, apiKeyData, evals, memoryStore, schedule] = await Promise.all([
     loadFromDisk<UserProfile | null>(FILES.profile, null),
     loadFromDisk<Task[]>(FILES.tasks, []),
     loadFromDisk<ChatMessage[]>(FILES.chatMessages, []),
     loadFromDisk<{ value: string }>(FILES.apiKey, { value: '' }),
     loadFromDisk<EvalRecord[]>(FILES.evals, []),
     loadFromDisk<MemoryStore>(FILES.memories, { ...DEFAULT_MEMORY_STORE }),
+    loadFromDisk<WeekSchedule>(FILES.schedule, { ...DEFAULT_SCHEDULE }),
   ])
   cache.profile = profile
   cache.tasks = tasks
@@ -80,6 +89,7 @@ export async function initStorage(): Promise<void> {
   cache.apiKey = apiKeyData.value ?? ''
   cache.evals = evals
   cache.memoryStore = memoryStore
+  cache.schedule = schedule
   cache.loaded = true
 }
 
@@ -236,6 +246,64 @@ export function bumpMemoryReference(ids: string[]): void {
   void saveToDisk(FILES.memories, cache.memoryStore)
 }
 
+export function getSchedule(): WeekSchedule {
+  return cache.schedule
+}
+
+export function getBlocks(): TimeBlock[] {
+  return cache.schedule.blocks
+}
+
+export function getBlocksForDate(date: string): TimeBlock[] {
+  return cache.schedule.blocks.filter(b => b.date === date)
+}
+
+export function addBlock(block: TimeBlock): void {
+  cache.schedule = {
+    ...cache.schedule,
+    blocks: [...cache.schedule.blocks, block],
+  }
+  void saveToDisk(FILES.schedule, cache.schedule)
+}
+
+export function addBlocks(blocks: TimeBlock[]): void {
+  cache.schedule = {
+    ...cache.schedule,
+    blocks: [...cache.schedule.blocks, ...blocks],
+  }
+  void saveToDisk(FILES.schedule, cache.schedule)
+}
+
+export function updateBlock(id: string, updates: Partial<TimeBlock>): void {
+  const idx = cache.schedule.blocks.findIndex(b => b.id === id)
+  if (idx === -1) return
+  cache.schedule = {
+    ...cache.schedule,
+    blocks: [
+      ...cache.schedule.blocks.slice(0, idx),
+      { ...cache.schedule.blocks[idx], ...updates },
+      ...cache.schedule.blocks.slice(idx + 1),
+    ],
+  }
+  void saveToDisk(FILES.schedule, cache.schedule)
+}
+
+export function deleteBlock(id: string): void {
+  cache.schedule = {
+    ...cache.schedule,
+    blocks: cache.schedule.blocks.filter(b => b.id !== id),
+  }
+  void saveToDisk(FILES.schedule, cache.schedule)
+}
+
+export function clearBlocksForDate(date: string): void {
+  cache.schedule = {
+    ...cache.schedule,
+    blocks: cache.schedule.blocks.filter(b => b.date !== date),
+  }
+  void saveToDisk(FILES.schedule, cache.schedule)
+}
+
 export function clearAllData(): void {
   cache.profile = null
   cache.tasks = []
@@ -243,6 +311,7 @@ export function clearAllData(): void {
   cache.apiKey = ''
   cache.evals = []
   cache.memoryStore = { ...DEFAULT_MEMORY_STORE }
+  cache.schedule = { ...DEFAULT_SCHEDULE }
   Object.values(FILES).forEach(f => void removeFromDisk(f))
 }
 

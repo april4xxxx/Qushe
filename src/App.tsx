@@ -5,6 +5,7 @@ import { TodayPage } from './pages/TodayPage'
 import { KanbanPage } from './pages/KanbanPage'
 import { ChatPage } from './pages/ChatPage'
 import { PanoramaPage } from './pages/PanoramaPage'
+import { CalendarPage } from './pages/CalendarPage'
 import { MemoryPage } from './pages/MemoryPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { extractMemories, initAI, isAIReady } from './lib/ai'
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="/kanban" element={<KanbanPage />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/panorama" element={<PanoramaPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/memory" element={<MemoryPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>

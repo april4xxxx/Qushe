@@ -129,7 +129,7 @@ export function SettingsPage() {
         {/* App info */}
         <footer className="text-center pt-8 pb-6">
           <p className="font-serif text-2xl text-parchment mb-1">取舍</p>
-          <p className="font-sans text-[11px] text-warm-gray-lighter tracking-wide">AI Task Curator · v0.2.0</p>
+          <p className="font-sans text-[11px] text-warm-gray-lighter tracking-wide">AI Task Curator · v0.2.5</p>
         </footer>
       </main>
     </div>

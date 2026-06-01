@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import type { AIAssessment, ChatMessage, EvalRecord, Mainline, Memory, MemoryType, Task } from '../types'
+import type { AIAssessment, ChatMessage, EvalRecord, Mainline, Memory, MemoryType, Task, TimeBlock } from '../types'
 
 let client: OpenAI | null = null
 
@@ -259,5 +259,92 @@ ${evalContext}
     return JSON.parse(jsonMatch[0]) as ExtractedMemories
   } catch {
     return { new: [], update: [], conflict: [] }
+  }
+}
+
+export interface PlanDayResult {
+  taskId: string
+  startHour: number
+  startMinute: number
+  durationMinutes: number
+}
+
+export async function planDay(
+  date: string,
+  tasks: Task[],
+  memories: Memory[],
+  existingBlocks: TimeBlock[]
+): Promise<PlanDayResult[]> {
+  if (!client) throw new Error('请先在设置页面配置 API Key')
+
+  const pendingTasks = tasks
+    .filter(t => t.status === 'pending' || t.status === 'in_progress')
+    .map(t => `- [${t.id}] ${t.title}（篮子：${t.basket}，预估${t.estimatedMinutes}分钟${t.deadline ? `，截止：${t.deadline}` : ''}${t.suggestedTimeSlot ? `，建议时段：${t.suggestedTimeSlot}` : ''}）`)
+    .join('\n')
+
+  if (!pendingTasks) throw new Error('没有待办任务可以规划')
+
+  const occupiedSlots = existingBlocks
+    .filter(b => b.date === date)
+    .map(b => `- ${String(b.startHour).padStart(2, '0')}:${String(b.startMinute).padStart(2, '0')} ~ ${b.durationMinutes}分钟（已占用）`)
+    .join('\n')
+
+  const memoryContext = memories.length > 0
+    ? memories.map(m => `- [${m.type}] ${m.title}：${m.content}`).join('\n')
+    : '无'
+
+  const response = await client.chat.completions.create({
+    model: 'deepseek-chat',
+    max_tokens: 2048,
+    messages: [
+      {
+        role: 'system',
+        content: `你是一个日程规划引擎。根据用户的待办任务、个人记忆和已占用时段，为指定日期生成最优时间安排。
+
+日期：${date}
+可用时段：8:00 - 22:00（每个时段必须是 30 分钟的整数倍，起始时间只能是整点或半点）
+
+用户记忆（精力规律、偏好等）：
+${memoryContext}
+
+已占用时段：
+${occupiedSlots || '无'}
+
+待安排任务：
+${pendingTasks}
+
+规划原则：
+1. 狮子任务优先排在上午精力最好的时段
+2. 牛马任务排在下午或精力较低的时段
+3. 鸵鸟任务排在最后或不排
+4. 相邻任务之间不需要间隔
+5. 不要和已占用时段冲突
+6. 任务时长按 estimatedMinutes 来，向上取整到 30 分钟的倍数
+7. 如果任务太多排不下，优先排狮子和牛马，鸵鸟可以不排
+8. 参考用户记忆中的精力规律和偏好来优化安排
+
+严格以 JSON 数组格式回复，不要包含其他文字：
+[
+  {"taskId":"任务id","startHour":9,"startMinute":0,"durationMinutes":60},
+  {"taskId":"任务id","startHour":10,"startMinute":0,"durationMinutes":30}
+]
+
+如果没有可以安排的任务，返回空数组 []`,
+      },
+      {
+        role: 'user',
+        content: `请为 ${date} 安排今日时间表`,
+      },
+    ],
+  })
+
+  const text = response.choices[0]?.message?.content ?? ''
+  const jsonMatch = text.match(/\[[\s\S]*\]/)
+  if (!jsonMatch) return []
+
+  try {
+    return JSON.parse(jsonMatch[0]) as PlanDayResult[]
+  } catch {
+    return []
   }
 }

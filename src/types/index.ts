@@ -107,6 +107,21 @@ export const MEMORY_TYPE_CONFIG = {
   preference: { label: '偏好', description: '执行习惯与倾向', icon: '◉' },
 } as const
 
+export interface TimeBlock {
+  id: string
+  taskId: string
+  date: string
+  startHour: number
+  startMinute: number
+  durationMinutes: number
+  aiGenerated: boolean
+}
+
+export interface WeekSchedule {
+  version: number
+  blocks: TimeBlock[]
+}
+
 export const BASKET_CONFIG = {
   lion: { label: '🦁 狮子', description: '今天必须办的重要+紧急任务', color: 'lion' },
   ox: { label: '🐂 牛马', description: '这周需要做的事务性任务', color: 'ox' },

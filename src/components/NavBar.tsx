@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 const links = [
   { to: '/', label: '今日', icon: '◉' },
   { to: '/kanban', label: '看板', icon: '▦' },
+  { to: '/calendar', label: '日历', icon: '▤' },
   { to: '/panorama', label: '全景', icon: '✦' },
   { to: '/chat', label: '对话', icon: '◎' },
   { to: '/settings', label: '设置', icon: '⚙' },

@@ -25,6 +25,7 @@
 
 - `design.md` — 你自己的产品设计（包含你的人生主线、Persona）
 - `user-journey-map.md` — 你自己测试得出的 Journey
+- `iterations.md` — 迭代日志（测试发现、UX 决策、版本计划调整）
 
 ## 如何使用
 
