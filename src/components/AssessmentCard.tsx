@@ -7,6 +7,7 @@ interface Props {
   assessment: AIAssessmentWithMemory
   taskTitle: string
   onConfirm: (overrides?: { basket?: Basket; deadline?: string; reason?: string }) => void
+  onDismiss?: () => void
   referencedMemories?: Memory[]
 }
 
@@ -16,7 +17,7 @@ const basketAccents = {
   ostrich: { border: 'ring-ostrich/30', bg: 'bg-ostrich-bg', text: 'text-ostrich' },
 }
 
-export function AssessmentCard({ assessment, taskTitle, onConfirm, referencedMemories }: Props) {
+export function AssessmentCard({ assessment, taskTitle, onConfirm, onDismiss, referencedMemories }: Props) {
   const [selectedBasket, setSelectedBasket] = useState<Basket>(assessment.basket)
   const [deadlineAnswer, setDeadlineAnswer] = useState(assessment.deadline ?? '')
   const [changeReason, setChangeReason] = useState('')
@@ -182,6 +183,14 @@ export function AssessmentCard({ assessment, taskTitle, onConfirm, referencedMem
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-cream/10 text-[11px] transition-transform duration-500 group-hover:translate-x-0.5">→</span>
             )}
           </button>
+          {onDismiss && (
+            <button
+              onClick={onDismiss}
+              className="w-full mt-3 font-sans text-[12px] text-warm-gray-light hover:text-warm-gray transition-colors py-2"
+            >
+              放弃这条任务
+            </button>
+          )}
         </div>
       </div>
     </div>

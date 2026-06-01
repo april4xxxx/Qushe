@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-- 产品版本：`0.2.5`
+- 产品版本：`0.3.0`
 - 应用类型：Electron 桌面应用，也可以用 Vite 浏览器模式预览
 - AI 服务：DeepSeek Chat API，使用 OpenAI SDK 兼容接口
 - 数据策略：任务、主线、聊天记录、API Key、AI 评估日志都存储在本机
@@ -26,6 +26,13 @@
 - AI 检测到时间敏感任务但未提及截止时间时，会专门追问"什么时候要完成？"用户必须回答才能确认。
 - 用户改 AI 建议的篮子时，弹出"为什么改？"输入框收集原因（可跳过），写入 `evals.json` 供后续分析。
 - 对话中第一次保存主线后，AI 自动推送"人生全景已生成"提示。
+
+### Tool Use 架构（V3）
+
+- **4 个工具**：`get_recent_completions`（完成记录）、`search_memories`（记忆搜索）、`get_schedule`（日程查询）、`get_task_stats`（任务统计）。
+- **Function calling 循环**：AI 可主动调用工具获取数据，最多 5 轮，自动判断何时调用。
+- **优雅降级**：如果模型不支持 function calling，自动回退到 V2 全量注入模式。
+- **Tool registry 模式**：`TOOL_DEFINITIONS` + `TOOL_HANDLERS`，新工具只需在 `tools.ts` 中注册。
 
 ### Memory 系统（V2）
 
@@ -61,7 +68,8 @@ src/
   index.css        Tailwind 主题、基础样式
   components/      通用 UI 组件
   lib/
-    ai.ts          DeepSeek/OpenAI SDK 初始化与 AI 调用
+    ai.ts          DeepSeek/OpenAI SDK 初始化与 AI 调用（V3 tool-use loop）
+    tools.ts       V3 工具定义、handler、dispatcher
     storage.ts     统一本地存储封装
   pages/           今日、看板、日历、对话、全景、记忆、设置页面
   types/           领域类型定义

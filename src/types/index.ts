@@ -122,6 +122,82 @@ export interface WeekSchedule {
   blocks: TimeBlock[]
 }
 
+// ---------------------------------------------------------------------------
+// V3 Tool Use types
+// ---------------------------------------------------------------------------
+
+export interface ToolParameterProperty {
+  type: string
+  description: string
+  enum?: string[]
+  default?: unknown
+}
+
+export interface ToolParameters {
+  type: 'object'
+  properties: Record<string, ToolParameterProperty>
+  required?: string[]
+}
+
+export interface ToolDefinition {
+  type: 'function'
+  function: {
+    name: string
+    description: string
+    parameters: ToolParameters
+  }
+}
+
+export interface ToolResult {
+  success: boolean
+  data: unknown
+  error?: string
+}
+
+export interface ToolCall {
+  id: string
+  type: 'function'
+  function: {
+    name: string
+    arguments: string
+  }
+}
+
+export interface TaskStats {
+  total: number
+  byBasket: Record<Basket, number>
+  byStatus: Record<TaskStatus, number>
+  completionRate: number
+  avgEstimatedMinutes: number
+  completedToday: number
+  completedThisWeek: number
+}
+
+export interface CompletionRecord {
+  id: string
+  title: string
+  basket: Basket
+  estimatedMinutes: number
+  completedAt: string
+  mainlineAlignment: MainlineAlignment
+}
+
+export interface MemorySearchEntry {
+  type: 'eval_override' | 'completion_pattern' | 'impulse_history'
+  content: string
+  timestamp: string
+}
+
+export interface ScheduleEntry {
+  id: string
+  title: string
+  basket: Basket
+  status: TaskStatus
+  estimatedMinutes: number
+  suggestedTimeSlot?: string
+  deadline?: string
+}
+
 export const BASKET_CONFIG = {
   lion: { label: '🦁 狮子', description: '今天必须办的重要+紧急任务', color: 'lion' },
   ox: { label: '🐂 牛马', description: '这周需要做的事务性任务', color: 'ox' },

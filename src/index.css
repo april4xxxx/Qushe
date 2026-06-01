@@ -49,6 +49,11 @@
   }
 }
 
+/* Page entrance animation */
+.page-enter {
+  animation: fadeUp 0.5s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
 /* Base resets */
 body {
   margin: 0;

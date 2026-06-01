@@ -6,6 +6,51 @@
 
 ---
 
+## 2026-06-01 · v0.3.0
+
+V3 — Tool Use + 三专家审查改进。AI 具备主动查询数据能力，UI/UX 全面优化。
+
+### Added
+
+- **V3 Tool Use 架构** (`src/lib/tools.ts`)：4 个工具定义 + handler + dispatcher
+  - `get_recent_completions(days)`：查最近完成的任务
+  - `search_memories(query)`：搜索结构化记忆 + evals + 完成模式 + 心血来潮记录
+  - `get_schedule(date)`：获取某天日程 + 日历时段块
+  - `get_task_stats()`：任务统计（各篮子数量、完成率、今日/本周数据）
+- **Function calling 循环** (`chatWithTools`)：LLM 调用 → 检测 tool_calls → 执行工具 → 喂回结果 → 最终回答。最多 5 轮。
+- **优雅降级**：如果 DeepSeek 不支持 function calling，自动降级为 V2 全量注入模式，后续调用不再尝试。
+- **首次使用引导卡片**：TodayPage 新增两步 checklist（配置 API Key → 梳理主线），替代原有"撞墙"体验。
+- **Toast 通知系统**：任务确认/删除后显示操作结果反馈。
+- **删除确认对话框**：删除任务前弹出确认，避免误删。
+- **评估结果可放弃**：AssessmentCard 新增 `onDismiss` prop，用户可取消不想添加的任务。
+- **键盘快捷键**：TodayPage 按 `N` 打开输入框，`Esc` 关闭。
+- **页面入场动画**：所有页面添加 `.page-enter` fadeUp 过渡效果。
+- **NavBar 记忆入口**：7 项导航新增「记忆 ◈」（位于对话和设置之间）。
+
+### Changed
+
+- **NavBar 紧凑布局**：7 项导航 `px-2.5 py-1.5`，icon `15px`，label `10px`，容器 `max-w-xl`。
+- **TaskCard**："取消"改为"不做了"（语义更清晰）；活跃任务隐藏删除按钮（仅已完成/已取消可删）。
+- **AI 等待状态**：显示具体任务名 + 说明文字，替代模糊的"AI 正在思考..."。
+- **错误消息可关闭**：TodayPage 错误提示新增 ✕ 关闭按钮。
+- **空状态优化**：区分未设置 vs 已设置但无任务，空状态提示包含键盘快捷键。
+- **新任务按钮位置**：从 `bottom-24` 调整为 `bottom-[5.5rem]` 避免被更宽的 NavBar 遮挡。
+- `assessTask` 和 `chat` 现在通过 `chatWithTools` 执行，支持工具调用。
+- 版本号升级至 `0.3.0`。
+
+### Architecture
+
+- **Tool 类型系统**：新增 `ToolDefinition`、`ToolResult`、`ToolCall`、`TaskStats`、`CompletionRecord`、`MemorySearchEntry`、`ScheduleEntry` 等 7 个 interface。
+- **Tool registry 模式**：`TOOL_DEFINITIONS` + `TOOL_HANDLERS` map，为 V4 Multi-Agent 铺路。
+- **`chatWithTools` 通用循环**：任何未来 Agent 可复用（只需传入不同的 system prompt + messages）。
+
+### Validation
+
+- `npm run build`：通过（与之前版本相同的已知 warning）。
+- `npm run lint`：未通过（ChatPage.tsx 已知错误，V3 未引入新 lint 错误）。
+
+---
+
 ## 2026-05-31 · v0.2.5
 
 V2.5 — 虚拟日历。AI 自动规划今日时间表，用户可拖拽调整。
