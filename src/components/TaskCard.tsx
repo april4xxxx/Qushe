@@ -90,6 +90,7 @@ export function TaskCard({ task, onComplete, onUncomplete, onCancel, onDelete, o
                 <button
                   onClick={() => onComplete(task.id)}
                   className="font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-accent hover:text-espresso transition-colors duration-300"
+                  title="标记为已完成"
                 >
                   完成 ✓
                 </button>
@@ -104,8 +105,9 @@ export function TaskCard({ task, onComplete, onUncomplete, onCancel, onDelete, o
                 <button
                   onClick={() => onCancel(task.id)}
                   className="font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-warm-gray-light hover:text-warm-gray transition-colors duration-300"
+                  title="不做了，但保留记录"
                 >
-                  取消
+                  不做了
                 </button>
               </>
             )}
@@ -125,12 +127,14 @@ export function TaskCard({ task, onComplete, onUncomplete, onCancel, onDelete, o
                 ↩ 恢复任务
               </button>
             )}
-            <button
-              onClick={() => onDelete(task.id)}
-              className="ml-auto font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-warm-gray-lighter hover:text-lion transition-colors duration-300"
-            >
-              删除
-            </button>
+            {isDone && (
+              <button
+                onClick={() => onDelete(task.id)}
+                className="ml-auto font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-warm-gray-lighter hover:text-lion transition-colors duration-300"
+              >
+                删除
+              </button>
+            )}
           </div>
         </div>
       </div>

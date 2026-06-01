@@ -79,7 +79,7 @@ export function PanoramaPage() {
 
   if (!profile?.mainlines?.length) {
     return (
-      <div className="min-h-screen bg-cream pb-32 flex flex-col items-center justify-center px-8 text-center">
+      <div className="min-h-screen bg-cream pb-32 flex flex-col items-center justify-center px-8 text-center page-enter">
         <p className="font-serif text-7xl text-parchment mb-6">全</p>
         <h2 className="font-serif text-2xl text-espresso mb-3">人生全景尚未就位</h2>
         <p className="font-sans text-[14px] text-warm-gray leading-relaxed max-w-xs mb-8">
@@ -97,7 +97,7 @@ export function PanoramaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream pb-32">
+    <div className="min-h-screen bg-cream pb-32 page-enter">
       {/* Editorial masthead */}
       <header className="px-8 pt-14 pb-8 text-center">
         <p className="font-sans text-[10px] uppercase tracking-[0.3em] text-warm-gray-light mb-4">

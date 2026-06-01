@@ -22,7 +22,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream pb-32">
+    <div className="min-h-screen bg-cream pb-32 page-enter">
       <header className="px-8 pt-14 pb-8">
         <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-warm-gray-light mb-3">配置</p>
         <h1 className="font-serif text-[2.5rem] leading-[1.1] text-espresso tracking-tight">设置</h1>
@@ -129,7 +129,7 @@ export function SettingsPage() {
         {/* App info */}
         <footer className="text-center pt-8 pb-6">
           <p className="font-serif text-2xl text-parchment mb-1">取舍</p>
-          <p className="font-sans text-[11px] text-warm-gray-lighter tracking-wide">AI Task Curator · v0.2.0</p>
+          <p className="font-sans text-[11px] text-warm-gray-lighter tracking-wide">AI Task Curator · v0.3.0</p>
         </footer>
       </main>
     </div>

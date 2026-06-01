@@ -107,7 +107,7 @@ export function MemoryPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-cream pb-32">
+    <div className="min-h-screen bg-cream pb-32 page-enter">
       <header className="px-8 pt-14 pb-6">
         <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-warm-gray-light mb-3">记忆</p>
         <h1 className="font-serif text-[2.5rem] leading-[1.1] text-espresso tracking-tight">
